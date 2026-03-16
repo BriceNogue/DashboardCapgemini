@@ -1,0 +1,14 @@
+<div class="kpi-card" [class]="'kpi-card--' + color()">
+  <div class="kpi-header">
+    <span class="kpi-title">{{ title() }}</span>
+    @if (trend()) {
+      <span class="kpi-trend" [class.positive]="trend().startsWith('-')">{{ trend() }}</span>
+    }
+  </div>
+  <div class="kpi-body">
+    <span class="kpi-value">{{ value() }}</span>
+    @if (unit()) {
+      <span class="kpi-unit">{{ unit() }}</span>
+    }
+  </div>
+</div>

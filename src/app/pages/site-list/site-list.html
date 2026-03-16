@@ -1,0 +1,64 @@
+<div class="layout">
+  <app-sidebar />
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1>Mes Sites</h1>
+        <p class="page-subtitle">Gérez vos sites et leurs données</p>
+      </div>
+      <a routerLink="/sites/nouveau" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nouveau site
+      </a>
+    </div>
+
+    @if (loading()) {
+      <div class="loading-state">
+        <div class="spinner-lg"></div>
+        <p>Chargement...</p>
+      </div>
+    } @else if (sites().length === 0) {
+      <div class="empty-state">
+        <h3>Aucun site</h3>
+        <p>Ajoutez votre premier site pour commencer l'analyse carbone.</p>
+        <a routerLink="/sites/nouveau" class="btn btn-primary mt-2">Ajouter un site</a>
+      </div>
+    } @else {
+      <div class="sites-grid">
+        @for (site of sites(); track site.id) {
+          <div class="card site-card">
+            <div class="site-card-header">
+              <h3>{{ site.nom }}</h3>
+              <div class="site-card-actions">
+                <a [routerLink]="['/sites', site.id]" class="btn btn-ghost btn-sm">Voir</a>
+                <a [routerLink]="['/sites', site.id, 'modifier']" class="btn btn-ghost btn-sm">Modifier</a>
+                <button class="btn btn-ghost btn-sm btn-danger-text" (click)="deleteSite(site.id)">Supprimer</button>
+              </div>
+            </div>
+            @if (site.adresse) {
+              <p class="site-card-addr">{{ site.adresse }}</p>
+            }
+            <div class="site-card-stats">
+              <div class="stat-item">
+                <span class="stat-label">Surface</span>
+                <span class="stat-value">{{ formatNumber(site.surfaceTotale) }} m²</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Employés</span>
+                <span class="stat-value">{{ site.nombreEmployes }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Énergie</span>
+                <span class="stat-value">{{ formatNumber(site.consommationEnergetique) }} kWh</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Matériaux</span>
+                <span class="stat-value">{{ site.materiaux.length || 0 }}</span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </main>
+</div>

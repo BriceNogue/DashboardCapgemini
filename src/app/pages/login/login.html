@@ -1,0 +1,80 @@
+<div class="auth-page">
+  <div class="auth-left">
+    <div class="auth-brand">
+      <div class="brand-icon">
+        <svg width="48" height="48" viewBox="0 0 32 32" fill="none">
+          <circle cx="16" cy="16" r="14" stroke="white" stroke-width="2.5"/>
+          <path d="M16 8C16 8 10 14 10 18C10 21.3137 12.6863 24 16 24C19.3137 24 22 21.3137 22 18C22 14 16 8 16 8Z" fill="white" opacity="0.3"/>
+          <path d="M16 8C16 8 10 14 10 18C10 21.3137 12.6863 24 16 24C19.3137 24 22 21.3137 22 18C22 14 16 8 16 8Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M16 16V22" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          <path d="M13 19L16 16L19 19" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h1>CarbonTrack</h1>
+      <p>Mesurez et optimisez l'empreinte carbone de vos sites</p>
+    </div>
+    <div class="auth-stats">
+      <div class="stat">
+        <span class="stat-value">-27%</span>
+        <span class="stat-label">Reduction moyenne</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value">150+</span>
+        <span class="stat-label">Sites analysés</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value">98%</span>
+        <span class="stat-label">Précision ADEME</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-right">
+    <div class="auth-form-wrapper">
+      <h2>Connexion</h2>
+      <p class="auth-subtitle">Accédez à votre tableau de bord carbone</p>
+
+      @if (error()) {
+        <div class="alert alert-error">{{ error() }}</div>
+      }
+
+      <form (ngSubmit)="onSubmit()" class="auth-form">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            [(ngModel)]="email"
+            name="email"
+            placeholder="votre@email.com"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Mot de passe</label>
+          <input
+            id="password"
+            type="password"
+            [(ngModel)]="password"
+            name="password"
+            placeholder="Votre mot de passe"
+            required
+          />
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full" [disabled]="loading()">
+          @if (loading()) {
+            <span class="spinner"></span> Connexion...
+          } @else {
+            Se connecter
+          }
+        </button>
+      </form>
+
+      <p class="auth-footer">
+        Pas encore de compte ? <a routerLink="/register">Créer un compte</a>
+      </p>
+    </div>
+  </div>
+</div>

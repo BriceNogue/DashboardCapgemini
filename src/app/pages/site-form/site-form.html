@@ -1,0 +1,209 @@
+<div class="layout">
+  <app-sidebar />
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1>{{ isEdit() ? 'Modifier le site' : 'Nouveau site' }}</h1>
+        <p class="page-subtitle">{{ isEdit() ? 'Mettez à jour les informations' : 'Renseignez les caractéristiques du site' }}</p>
+      </div>
+      <a routerLink="/sites" class="btn btn-secondary">Retour</a>
+    </div>
+
+    <form (ngSubmit)="onSubmit()" class="site-form">
+      <!-- Informations générales -->
+      <div class="card form-section">
+        <h3 class="section-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M3 9L12 2L21 9V20C21 21.1 20.1 22 19 22H5C3.9 22 3 21.1 3 20V9Z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+          Informations générales
+        </h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="nom">Nom du site *</label>
+            <input id="nom" type="text" [(ngModel)]="nom" name="nom" placeholder="Ex: Campus Capgemini Rennes" required />
+          </div>
+          <div class="form-group autocomplete-container">
+            <label for="adresse">Adresse</label>
+            <input id="adresse" type="text" [(ngModel)]="adresse" name="adresse"
+              placeholder="Tapez une adresse..."
+              (input)="onAdresseInput(adresse)"
+              (focus)="showSuggestions.set(adresseSuggestions().length > 0)"
+              autocomplete="off" />
+            @if (showSuggestions() && adresseSuggestions().length > 0) {
+              <div class="suggestions-dropdown">
+                @for (suggestion of adresseSuggestions(); track suggestion.label) {
+                  <div class="suggestion-item" (click)="selectAdresse(suggestion)">
+                    <span class="suggestion-label">{{ suggestion.label }}</span>
+                    <span class="suggestion-context">{{ suggestion.context }}</span>
+                  </div>
+                }
+              </div>
+            }
+            @if (loadingBuildingData()) {
+              <div class="autofill-indicator">
+                <span class="spinner-sm"></span> Récupération des données du bâtiment...
+              </div>
+            }
+            @if (buildingDataLoaded() && autoFilledFields().length > 0) {
+              <div class="autofill-success">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20,6 9,17 4,12"/></svg>
+                Données pré-remplies :
+                @if (isAutoFilled('surfaceTotale')) { <span class="autofill-tag">Surface</span> }
+                @if (isAutoFilled('consommationEnergetique')) { <span class="autofill-tag">Consommation</span> }
+                @if (isAutoFilled('classeDpe')) { <span class="autofill-tag">Classe DPE</span> }
+                @if (isAutoFilled('classeGes')) { <span class="autofill-tag">Classe GES</span> }
+                @if (isAutoFilled('anneeConstruction')) { <span class="autofill-tag">Année construction</span> }
+                @if (isAutoFilled('nombreEtages')) { <span class="autofill-tag">Étages</span> }
+                @if (isAutoFilled('typeChauffage')) { <span class="autofill-tag">Chauffage</span> }
+                @if (isAutoFilled('typeEnergie')) { <span class="autofill-tag">Type énergie</span> }
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Caractéristiques -->
+      <div class="card form-section">
+        <h3 class="section-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          Caractéristiques du site
+        </h3>
+        <div class="form-grid form-grid-3">
+          <div class="form-group">
+            <label for="surface">Surface totale (m²) *</label>
+            <input id="surface" type="number" [(ngModel)]="surfaceTotale" name="surfaceTotale" placeholder="11771" required [class.autofilled]="isAutoFilled('surfaceTotale')" />
+          </div>
+          <div class="form-group">
+            <label for="parking">Places de parking</label>
+            <input id="parking" type="number" [(ngModel)]="nombrePlacesParking" name="nombrePlacesParking" placeholder="200" />
+          </div>
+          <div class="form-group">
+            <label for="employes">Nombre d'employés *</label>
+            <input id="employes" type="number" [(ngModel)]="nombreEmployes" name="nombreEmployes" placeholder="1800" required />
+          </div>
+          <div class="form-group">
+            <label for="postes">Postes de travail</label>
+            <input id="postes" type="number" [(ngModel)]="nombrePostes" name="nombrePostes" placeholder="1037" />
+          </div>
+          <div class="form-group">
+            <label for="conso">Consommation énergétique (kWh/an) *</label>
+            <input id="conso" type="number" [(ngModel)]="consommationEnergetique" name="consommationEnergetique" placeholder="1840000" required [class.autofilled]="isAutoFilled('consommationEnergetique')" />
+          </div>
+          <div class="form-group">
+            <label for="typeEnergie">Type d'énergie</label>
+            <select id="typeEnergie" [(ngModel)]="typeEnergie" name="typeEnergie" [class.autofilled]="isAutoFilled('typeEnergie')">
+              <option value="electricite">Électricité</option>
+              <option value="gaz">Gaz naturel</option>
+              <option value="mixte">Mixte</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Données bâtiment (BDNB / DPE) -->
+      <div class="card form-section">
+        <h3 class="section-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--success, #10B981)" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9h1"/><path d="M9 13h1"/><path d="M9 17h1"/></svg>
+          Données du bâtiment
+        </h3>
+        <div class="form-grid form-grid-3">
+          <div class="form-group">
+            <label for="anneeConstruction">Année de construction</label>
+            <input id="anneeConstruction" type="number" [(ngModel)]="anneeConstruction" name="anneeConstruction" placeholder="1995" [class.autofilled]="isAutoFilled('anneeConstruction')" />
+          </div>
+          <div class="form-group">
+            <label for="classeDpe">Classe DPE</label>
+            <select id="classeDpe" [(ngModel)]="classeDpe" name="classeDpe" [class.autofilled]="isAutoFilled('classeDpe')">
+              <option [ngValue]="null">—</option>
+              @for (c of ['A','B','C','D','E','F','G']; track c) {
+                <option [value]="c">{{ c }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="classeGes">Classe GES</label>
+            <select id="classeGes" [(ngModel)]="classeGes" name="classeGes" [class.autofilled]="isAutoFilled('classeGes')">
+              <option [ngValue]="null">—</option>
+              @for (c of ['A','B','C','D','E','F','G']; track c) {
+                <option [value]="c">{{ c }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="nombreEtages">Nombre d'étages</label>
+            <input id="nombreEtages" type="number" [(ngModel)]="nombreEtages" name="nombreEtages" placeholder="3" [class.autofilled]="isAutoFilled('nombreEtages')" />
+          </div>
+          <div class="form-group">
+            <label for="hauteur">Hauteur (m)</label>
+            <input id="hauteur" type="number" [(ngModel)]="hauteur" name="hauteur" placeholder="12.5" step="0.1" [class.autofilled]="isAutoFilled('hauteur')" />
+          </div>
+          <div class="form-group">
+            <label for="typeChauffage">Type de chauffage</label>
+            <input id="typeChauffage" type="text" [(ngModel)]="typeChauffage" name="typeChauffage" placeholder="Électrique, Gaz..." [class.autofilled]="isAutoFilled('typeChauffage')" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Matériaux -->
+      <div class="card form-section">
+        <div class="section-header">
+          <h3 class="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+            Matériaux de construction
+          </h3>
+          <button type="button" class="btn btn-secondary" (click)="ajouterMateriau()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Ajouter
+          </button>
+        </div>
+
+        @if (materiaux().length === 0) {
+          <p class="text-secondary">Aucun matériau ajouté. Cliquez sur "Ajouter" pour renseigner les matériaux de construction.</p>
+        } @else {
+          @for (mat of materiaux(); track $index) {
+            <div class="materiau-row">
+              <div class="form-group">
+                <label>Type</label>
+                <select [ngModel]="mat.typeMateriau" (ngModelChange)="updateMateriau($index, 'typeMateriau', $event)" [name]="'matType' + $index">
+                  @for (type of typeMateriauOptions; track type) {
+                    <option [value]="type">{{ materiauLabels[type] }}</option>
+                  }
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Quantité (tonnes)</label>
+                <input type="number" [ngModel]="mat.quantite" (ngModelChange)="updateMateriau($index, 'quantite', $event)" [name]="'matQte' + $index" placeholder="0" />
+              </div>
+              <div class="form-group">
+                <label>Facteur (kgCO2e/t)</label>
+                <input type="number" [ngModel]="mat.facteurEmission" (ngModelChange)="updateMateriau($index, 'facteurEmission', $event)" [name]="'matFact' + $index" placeholder="Défaut ADEME" />
+              </div>
+              <button type="button" class="btn-remove" (click)="supprimerMateriau($index)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+          }
+        }
+      </div>
+
+      <!-- Error message -->
+      @if (errorMessage()) {
+        <div class="error-banner">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          {{ errorMessage() }}
+        </div>
+      }
+
+      <!-- Submit -->
+      <div class="form-actions">
+        <a routerLink="/sites" class="btn btn-secondary">Annuler</a>
+        <button type="submit" class="btn btn-primary" [disabled]="saving()">
+          @if (saving()) {
+            <span class="spinner"></span> Enregistrement...
+          } @else {
+            {{ isEdit() ? 'Mettre à jour' : 'Créer le site' }}
+          }
+        </button>
+      </div>
+    </form>
+  </main>
+</div>

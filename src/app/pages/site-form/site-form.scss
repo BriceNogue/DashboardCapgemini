@@ -1,0 +1,221 @@
+.layout { display: flex; min-height: 100vh; }
+.main-content { flex: 1; margin-left: 260px; padding: 32px; background: var(--bg); }
+.page-header {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;
+  h1 { font-size: 28px; font-weight: 700; }
+}
+.page-subtitle { color: var(--text-secondary); margin-top: 4px; font-size: 14px; }
+
+.site-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 900px;
+}
+
+.form-section {
+  padding: 28px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 20px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+
+  .section-title {
+    margin-bottom: 0;
+  }
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+
+  &-3 {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+.materiau-row {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+  padding: 16px;
+  background: var(--primary-50);
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
+
+  .form-group {
+    margin-bottom: 0;
+  }
+}
+
+.btn-remove {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--text-light);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition);
+  margin-bottom: 2px;
+
+  &:hover {
+    background: var(--danger-light);
+    color: var(--danger);
+  }
+}
+
+.autocomplete-container {
+  position: relative;
+}
+
+.suggestions-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+  z-index: 50;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.suggestion-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: var(--transition);
+  border-bottom: 1px solid var(--border);
+
+  &:hover {
+    background: var(--primary-50);
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.suggestion-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.suggestion-context {
+  display: block;
+  font-size: 12px;
+  color: var(--text-light);
+  margin-top: 2px;
+}
+
+.autofill-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--accent);
+}
+
+.autofill-success {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--success, #10B981);
+  font-weight: 500;
+}
+
+.autofill-tag {
+  display: inline-block;
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success, #10B981);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+input.autofilled,
+select.autofilled {
+  border-color: var(--success, #10B981) !important;
+  background: rgba(16, 185, 129, 0.05) !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+  transition: all 0.3s ease;
+}
+
+.spinner-sm {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-sm);
+  color: #dc2626;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 8px;
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 768px) {
+  .main-content { margin-left: 0; padding: 16px; }
+  .form-grid, .form-grid-3 { grid-template-columns: 1fr; }
+  .materiau-row { grid-template-columns: 1fr; }
+}

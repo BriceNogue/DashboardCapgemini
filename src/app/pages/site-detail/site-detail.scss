@@ -1,0 +1,141 @@
+.layout { display: flex; min-height: 100vh; }
+.main-content { flex: 1; margin-left: 260px; padding: 32px; background: var(--bg); }
+.page-header {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;
+  h1 { font-size: 28px; font-weight: 700; }
+}
+.page-subtitle { color: var(--text-secondary); margin-top: 4px; }
+.header-actions { display: flex; gap: 8px; }
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 20px;
+}
+
+.card {
+  padding: 24px;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.detail-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.detail-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.detail-label {
+  width: 120px;
+  font-size: 13px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.detail-bar-track {
+  flex: 1;
+  height: 20px;
+  background: var(--primary-50);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.detail-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+  border-radius: 4px;
+  transition: width 0.6s ease;
+  min-width: 2px;
+}
+
+.detail-value {
+  width: 100px;
+  text-align: right;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  background: var(--primary-50);
+  border-radius: var(--radius-sm);
+}
+
+.info-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--text-light);
+  letter-spacing: 0.3px;
+}
+
+.info-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+// DPE badges (A=green → G=red)
+.dpe-badge, .ges-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 14px;
+  color: white;
+  text-align: center;
+  min-width: 28px;
+}
+
+.dpe-a, .ges-a { background: #319834; }
+.dpe-b, .ges-b { background: #33cc31; }
+.dpe-c, .ges-c { background: #cbfc33; color: #333; }
+.dpe-d, .ges-d { background: #fbfe06; color: #333; }
+.dpe-e, .ges-e { background: #fbcc04; color: #333; }
+.dpe-f, .ges-f { background: #fc9935; }
+.dpe-g, .ges-g { background: #fc0205; }
+
+.loading-state { text-align: center; padding: 80px; p { color: var(--text-secondary); margin-top: 16px; } }
+.spinner-lg { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.mt-3 {
+  margin-top: 24px;
+}
+
+@media (max-width: 1200px) {
+  .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+  .detail-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .main-content { margin-left: 0; padding: 16px; }
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+}

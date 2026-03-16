@@ -1,0 +1,138 @@
+<div class="layout">
+  <app-sidebar />
+  <main class="main-content">
+    @if (loading()) {
+      <div class="loading-state">
+        <div class="spinner-lg"></div>
+        <p>Calcul de l'empreinte carbone...</p>
+      </div>
+    } @else if (site(); as s) {
+      <div class="page-header">
+        <div>
+          <h1>{{ s.nom }}</h1>
+          <p class="page-subtitle">{{ s.adresse }}</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-primary" (click)="exportPdf()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Export PDF
+          </button>
+          <a [routerLink]="['/sites', s.id, 'modifier']" class="btn btn-secondary">Modifier</a>
+          <a routerLink="/sites" class="btn btn-ghost">Retour</a>
+        </div>
+      </div>
+
+      @if (empreinte(); as e) {
+        <!-- KPIs -->
+        <div class="kpi-grid">
+          <app-kpi-card title="CO2 Total" [value]="formatNumber(Math.round(e.empreinteTotale / 10) / 100)" unit="tCO2e" color="primary" />
+          <app-kpi-card title="Construction" [value]="formatNumber(Math.round(e.empreinteConstruction / 10) / 100)" unit="tCO2e" color="accent" />
+          <app-kpi-card title="Exploitation / an" [value]="formatNumber(Math.round(e.empreinteExploitation / 10) / 100)" unit="tCO2e" color="warning" />
+          <app-kpi-card title="CO2 / m²" [value]="formatNumber(e.co2ParM2)" unit="kgCO2e/m²" color="primary" />
+          <app-kpi-card title="CO2 / Employé" [value]="formatNumber(Math.round(e.co2ParEmploye / 10) / 100)" unit="tCO2e" color="accent" />
+        </div>
+
+        <!-- Detail Construction -->
+        <div class="detail-grid">
+          <div class="card">
+            <h3 class="card-title">Détail par matériau</h3>
+            <div class="detail-bars">
+              @for (entry of getDetailEntries(); track entry[0]) {
+                <div class="detail-row">
+                  <span class="detail-label">{{ entry[0] }}</span>
+                  <div class="detail-bar-track">
+                    <div class="detail-bar-fill" [style.width.%]="entry[1] / getMaxDetail() * 100"></div>
+                  </div>
+                  <span class="detail-value">{{ formatNumber(Math.round(entry[1])) }} kg</span>
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">Caractéristiques du site</h3>
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="info-label">Surface</span>
+                <span class="info-value">{{ formatNumber(s.surfaceTotale) }} m²</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Employés</span>
+                <span class="info-value">{{ s.nombreEmployes }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Postes de travail</span>
+                <span class="info-value">{{ s.nombrePostes || '-' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Places parking</span>
+                <span class="info-value">{{ s.nombrePlacesParking || '-' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Conso. énergétique</span>
+                <span class="info-value">{{ formatNumber(s.consommationEnergetique) }} kWh/an</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Type d'énergie</span>
+                <span class="info-value">{{ s.typeEnergie || 'Électricité' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Facteur émission énergie</span>
+                <span class="info-value">{{ e.facteurEmissionEnergie }} kgCO2e/kWh</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Matériaux</span>
+                <span class="info-value">{{ s.materiaux.length || 0 }} types</span>
+              </div>
+              @if (s.anneeConstruction) {
+                <div class="info-item">
+                  <span class="info-label">Année de construction</span>
+                  <span class="info-value">{{ s.anneeConstruction }}</span>
+                </div>
+              }
+              @if (s.classeDpe) {
+                <div class="info-item">
+                  <span class="info-label">Classe DPE</span>
+                  <span class="info-value dpe-badge dpe-{{ s.classeDpe!.toLowerCase() }}">{{ s.classeDpe }}</span>
+                </div>
+              }
+              @if (s.classeGes) {
+                <div class="info-item">
+                  <span class="info-label">Classe GES</span>
+                  <span class="info-value ges-badge ges-{{ s.classeGes!.toLowerCase() }}">{{ s.classeGes }}</span>
+                </div>
+              }
+              @if (s.nombreEtages) {
+                <div class="info-item">
+                  <span class="info-label">Nombre d'étages</span>
+                  <span class="info-value">{{ s.nombreEtages }}</span>
+                </div>
+              }
+              @if (s.hauteur) {
+                <div class="info-item">
+                  <span class="info-label">Hauteur</span>
+                  <span class="info-value">{{ s.hauteur }} m</span>
+                </div>
+              }
+              @if (s.typeChauffage) {
+                <div class="info-item">
+                  <span class="info-label">Type de chauffage</span>
+                  <span class="info-value">{{ s.typeChauffage }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        @if (historiques().length > 1) {
+          <div class="card mt-3">
+            <h3 class="card-title">Historique des calculs</h3>
+            <canvas #historyChart width="600" height="250"></canvas>
+          </div>
+        }
+      }
+    }
+  </main>
+</div>

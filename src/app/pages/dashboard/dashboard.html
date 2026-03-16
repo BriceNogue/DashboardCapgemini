@@ -1,0 +1,144 @@
+<div class="layout">
+  <app-sidebar />
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1>Dashboard</h1>
+        <p class="page-subtitle">Vue d'ensemble de vos émissions carbone</p>
+      </div>
+      <a routerLink="/sites/nouveau" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nouveau site
+      </a>
+    </div>
+
+    @if (loading()) {
+      <div class="loading-state">
+        <div class="spinner-lg"></div>
+        <p>Chargement des données...</p>
+      </div>
+    } @else if (sites().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--text-light)" stroke-width="1.5"><path d="M3 9L12 2L21 9V20C21 21.1 20.1 22 19 22H5C3.9 22 3 21.1 3 20V9Z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+        </div>
+        <h3>Aucun site enregistré</h3>
+        <p>Commencez par ajouter votre premier site pour calculer son empreinte carbone.</p>
+        <a routerLink="/sites/nouveau" class="btn btn-primary mt-2">Ajouter un site</a>
+      </div>
+    } @else {
+      <!-- KPI Cards -->
+      <div class="kpi-grid">
+        <app-kpi-card
+          title="CO2 Total"
+          [value]="formatNumber(totalCO2())"
+          unit="tCO2e"
+          color="primary"
+        />
+        <app-kpi-card
+          title="CO2 / m²"
+          [value]="formatNumber(co2ParM2Moyen())"
+          unit="kgCO2e/m²"
+          color="accent"
+        />
+        <app-kpi-card
+          title="CO2 / Employé"
+          [value]="formatNumber(co2ParEmployeMoyen())"
+          unit="tCO2e"
+          color="warning"
+        />
+        <app-kpi-card
+          title="Nombre de sites"
+          [value]="sites().length.toString()"
+          unit="sites"
+          color="primary"
+        />
+        @if (rteData()) {
+          <app-kpi-card
+            title="Intensité CO2 réseau"
+            [value]="rteData()!.co2Rate.toString()"
+            unit="gCO2/kWh"
+            color="accent"
+          />
+        }
+      </div>
+
+      <!-- Charts Row -->
+      <div class="charts-row">
+        <!-- Répartition Construction / Exploitation -->
+        <div class="card chart-card">
+          <h3 class="card-title">Répartition des émissions</h3>
+          <div class="donut-chart-container">
+            <canvas #donutChart width="250" height="250"></canvas>
+            <div class="donut-legend">
+              <div class="legend-item">
+                <span class="legend-dot" style="background: #10B981"></span>
+                <span class="legend-label">Construction</span>
+                <span class="legend-value">{{ formatNumber(totalConstruction()) }} tCO2e ({{ getConstructionPercent() }}%)</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot" style="background: #3B82F6"></span>
+                <span class="legend-label">Exploitation</span>
+                <span class="legend-value">{{ formatNumber(totalExploitation()) }} tCO2e ({{ getExploitationPercent() }}%)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Sites -->
+        <div class="card chart-card">
+          <h3 class="card-title">Émissions par site</h3>
+          <canvas #barChart width="400" height="300"></canvas>
+        </div>
+      </div>
+
+      <!-- Material breakdown chart -->
+      <div class="charts-row mt-3">
+        <div class="card chart-card">
+          <h3 class="card-title">Répartition par matériau</h3>
+          <canvas #materiauChart width="400" height="300"></canvas>
+        </div>
+      </div>
+
+      <!-- Sites Table -->
+      <div class="card mt-3">
+        <div class="card-header">
+          <h3 class="card-title">Mes sites</h3>
+          <a routerLink="/sites" class="btn btn-ghost">Voir tout</a>
+        </div>
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Site</th>
+                <th>Surface</th>
+                <th>Employés</th>
+                <th>Conso. énergie</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (site of sites(); track site.id) {
+                <tr>
+                  <td>
+                    <div class="site-cell">
+                      <span class="site-name">{{ site.nom }}</span>
+                      <span class="site-addr">{{ site.adresse }}</span>
+                    </div>
+                  </td>
+                  <td>{{ formatNumber(site.surfaceTotale) }} m²</td>
+                  <td>{{ site.nombreEmployes }}</td>
+                  <td>{{ formatNumber(site.consommationEnergetique) }} kWh</td>
+                  <td>
+                    <a [routerLink]="['/sites', site.id]" class="btn btn-ghost btn-sm">Détail</a>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+  </main>
+</div>

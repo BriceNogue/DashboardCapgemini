@@ -1,0 +1,63 @@
+<div class="auth-page">
+  <div class="auth-left">
+    <div class="auth-brand">
+      <div class="brand-icon">
+        <svg width="48" height="48" viewBox="0 0 32 32" fill="none">
+          <circle cx="16" cy="16" r="14" stroke="white" stroke-width="2.5"/>
+          <path d="M16 8C16 8 10 14 10 18C10 21.3137 12.6863 24 16 24C19.3137 24 22 21.3137 22 18C22 14 16 8 16 8Z" fill="white" opacity="0.3"/>
+          <path d="M16 8C16 8 10 14 10 18C10 21.3137 12.6863 24 16 24C19.3137 24 22 21.3137 22 18C22 14 16 8 16 8Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M16 16V22" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          <path d="M13 19L16 16L19 19" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h1>CarbonTrack</h1>
+      <p>Rejoignez la plateforme de suivi carbone</p>
+    </div>
+  </div>
+
+  <div class="auth-right">
+    <div class="auth-form-wrapper">
+      <h2>Créer un compte</h2>
+      <p class="auth-subtitle">Commencez à mesurer votre impact</p>
+
+      @if (error()) {
+        <div class="alert alert-error">{{ error() }}</div>
+      }
+
+      <form (ngSubmit)="onSubmit()" class="auth-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="prenom">Prénom</label>
+            <input id="prenom" type="text" [(ngModel)]="prenom" name="prenom" placeholder="Jean" required />
+          </div>
+          <div class="form-group">
+            <label for="nom">Nom</label>
+            <input id="nom" type="text" [(ngModel)]="nom" name="nom" placeholder="Dupont" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input id="email" type="email" [(ngModel)]="email" name="email" placeholder="votre@email.com" required />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Mot de passe</label>
+          <input id="password" type="password" [(ngModel)]="password" name="password" placeholder="Minimum 6 caractères" required minlength="6" />
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full" [disabled]="loading()">
+          @if (loading()) {
+            <span class="spinner"></span> Inscription...
+          } @else {
+            Créer mon compte
+          }
+        </button>
+      </form>
+
+      <p class="auth-footer">
+        Déjà inscrit ? <a routerLink="/login">Se connecter</a>
+      </p>
+    </div>
+  </div>
+</div>

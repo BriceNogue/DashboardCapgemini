@@ -1,0 +1,110 @@
+<div class="layout">
+  <app-sidebar />
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1>Comparaison de sites</h1>
+        <p class="page-subtitle">Sélectionnez au moins 2 sites pour comparer leurs empreintes</p>
+      </div>
+      <button class="btn btn-primary" (click)="compare()" [disabled]="!canCompare() || comparing()">
+        @if (comparing()) {
+          <span class="spinner"></span> Comparaison...
+        } @else {
+          Comparer ({{ selectedSiteIds().size }})
+        }
+      </button>
+    </div>
+
+    @if (loading()) {
+      <div class="loading-state"><div class="spinner-lg"></div><p>Chargement...</p></div>
+    } @else {
+      <!-- Site selection -->
+      <div class="sites-selection">
+        @for (site of sites(); track site.id) {
+          <div class="site-select-card" [class.selected]="isSiteSelected(site.id)" (click)="toggleSite(site.id)">
+            <div class="select-check">
+              @if (isSiteSelected(site.id)) {
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#10B981" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="9,12 11,14 15,10"/></svg>
+              } @else {
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+              }
+            </div>
+            <div class="select-info">
+              <span class="select-name">{{ site.nom }}</span>
+              <span class="select-details">{{ site.surfaceTotale }} m² · {{ site.nombreEmployes }} employés</span>
+            </div>
+          </div>
+        }
+      </div>
+
+      @if (comparisonResult()) {
+        <!-- Summary cards -->
+        <div class="comparison-summary mt-3">
+          <div class="card summary-card best">
+            <span class="summary-label">Meilleur site</span>
+            <span class="summary-value">{{ comparisonResult().siteMoinsPolluant }}</span>
+          </div>
+          <div class="card summary-card worst">
+            <span class="summary-label">Site le plus émetteur</span>
+            <span class="summary-value">{{ comparisonResult().sitePlusPolluant }}</span>
+          </div>
+          <div class="card summary-card ecart">
+            <span class="summary-label">Écart max</span>
+            <span class="summary-value">{{ comparisonResult().ecartMax }}%</span>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-row mt-3">
+          <div class="card chart-card">
+            <h3 class="card-title">Émissions par site</h3>
+            <canvas #comparisonChart></canvas>
+          </div>
+          <div class="card chart-card">
+            <h3 class="card-title">Profil comparatif</h3>
+            <canvas #radarChart></canvas>
+          </div>
+        </div>
+
+        <!-- Data table -->
+        <div class="card mt-3">
+          <h3 class="card-title">Détail comparatif</h3>
+          <div class="table-container">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Site</th>
+                  <th>Construction</th>
+                  <th>Exploitation</th>
+                  <th>Total</th>
+                  <th>CO2/m²</th>
+                  <th>CO2/Employé</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (e of comparisonResult().empreintes; track e.siteId) {
+                  <tr>
+                    <td><strong>{{ e.siteNom }}</strong></td>
+                    <td>{{ formatNumber(e.empreinteConstruction) }} kg</td>
+                    <td>{{ formatNumber(e.empreinteExploitation) }} kg</td>
+                    <td><strong>{{ formatNumber(e.empreinteTotale) }} kg</strong></td>
+                    <td>{{ e.co2ParM2 }} kg/m²</td>
+                    <td>{{ formatNumber(e.co2ParEmploye) }} kg</td>
+                  </tr>
+                }
+                <tr class="moyenne-row">
+                  <td><strong>Moyenne</strong></td>
+                  <td>{{ formatNumber(comparisonResult().moyenne.empreinteConstruction) }} kg</td>
+                  <td>{{ formatNumber(comparisonResult().moyenne.empreinteExploitation) }} kg</td>
+                  <td><strong>{{ formatNumber(comparisonResult().moyenne.empreinteTotale) }} kg</strong></td>
+                  <td>{{ comparisonResult().moyenne.co2ParM2 }} kg/m²</td>
+                  <td>{{ formatNumber(comparisonResult().moyenne.co2ParEmploye) }} kg</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+    }
+  </main>
+</div>
