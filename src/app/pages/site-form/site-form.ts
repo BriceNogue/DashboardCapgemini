@@ -170,6 +170,7 @@ export class SiteFormComponent implements OnInit {
 
     this.externalApi.getBuildingInfo(result.latitude, result.longitude).subscribe({
       next: (building) => {
+        console.log('[BDNB/IGN] Building data:', building);
         if (!building) { bdnbDone = true; checkComplete(); return; }
         if (building.surfaceEstimee && !this.surfaceTotale) {
           this.surfaceTotale = Math.round(building.surfaceEstimee);
@@ -183,13 +184,14 @@ export class SiteFormComponent implements OnInit {
           this.classeDpe = building.classeDpe;
           filled.push('classeDpe');
         }
-        if (building.hauteur && !this.hauteur) {
+        // BDNB/IGN is authoritative for building height and floors — always overwrite
+        if (building.hauteur) {
           this.hauteur = Math.round(building.hauteur * 10) / 10;
-          filled.push('hauteur');
+          if (!filled.includes('hauteur')) filled.push('hauteur');
         }
-        if (building.nombreEtages && !this.nombreEtages) {
+        if (building.nombreEtages) {
           this.nombreEtages = building.nombreEtages;
-          filled.push('nombreEtages');
+          if (!filled.includes('nombreEtages')) filled.push('nombreEtages');
         }
         bdnbDone = true;
         checkComplete();
@@ -202,9 +204,11 @@ export class SiteFormComponent implements OnInit {
 
     this.externalApi.searchDpe(result.label).subscribe({
       next: (dpeResults) => {
+        console.log('[DPE] Results received:', dpeResults.length, dpeResults);
         if (dpeResults.length > 0) {
           // Merge best values from all results
           const merged = this.mergeDpeResults(dpeResults);
+          console.log('[DPE] Merged result:', merged);
           this.dpeInfo.set(merged);
 
           if (merged.surface && !this.surfaceTotale) {
@@ -279,16 +283,33 @@ export class SiteFormComponent implements OnInit {
   private mergeDpeResults(results: DpeResult[]): DpeResult {
     const merged: DpeResult = { ...results[0] };
     for (const r of results) {
-      if (!merged.classeEnergie && r.classeEnergie) merged.classeEnergie = r.classeEnergie;
-      if (!merged.classeGes && r.classeGes) merged.classeGes = r.classeGes;
+      // For DPE/GES classes: take the BEST (A > B > C > ... > G)
+      if (r.classeEnergie && this.isBetterClass(r.classeEnergie, merged.classeEnergie)) {
+        merged.classeEnergie = r.classeEnergie;
+      }
+      if (r.classeGes && this.isBetterClass(r.classeGes, merged.classeGes)) {
+        merged.classeGes = r.classeGes;
+      }
       if (!merged.consommationEnergie && r.consommationEnergie) merged.consommationEnergie = r.consommationEnergie;
-      if (!merged.surface && r.surface) merged.surface = r.surface;
+      // For surface, take the LARGEST value (total building, not a single lot)
+      if (r.surface && (!merged.surface || r.surface > merged.surface)) merged.surface = r.surface;
       if (!merged.anneeConstruction && r.anneeConstruction) merged.anneeConstruction = r.anneeConstruction;
       if (!merged.typeChauffage && r.typeChauffage) merged.typeChauffage = r.typeChauffage;
       if (!merged.nombreEtages && r.nombreEtages) merged.nombreEtages = r.nombreEtages;
       if (!merged.hauteur && r.hauteur) merged.hauteur = r.hauteur;
     }
+    console.log('[DPE] Merged final:', merged);
     return merged;
+  }
+
+  private isBetterClass(candidate: string, current: string | undefined): boolean {
+    if (!current) return true;
+    const order = 'ABCDEFG';
+    const ci = order.indexOf(candidate.toUpperCase());
+    const cu = order.indexOf(current.toUpperCase());
+    if (ci === -1) return false;
+    if (cu === -1) return true;
+    return ci < cu; // A=0 < B=1 < C=2, so lower index = better
   }
 
   isAutoFilled(field: string): boolean {

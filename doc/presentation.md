@@ -2,7 +2,7 @@
 
 ## La promesse
 
-CarbonTrack transforme une simple adresse en un **bilan carbone complet et actionnable** d'un site physique. Plus besoin de collecter manuellement des dizaines de données : notre plateforme interroge **9 sources de données ouvertes** pour pré-remplir automatiquement les caractéristiques du bâtiment, estimer les matériaux de construction et calculer l'empreinte carbone en quelques secondes.
+CarbonTrack transforme une simple adresse en un **bilan carbone complet et actionnable** d'un site physique. Plus besoin de collecter manuellement des dizaines de données : notre plateforme interroge **10 sources de données ouvertes** pour pré-remplir automatiquement les caractéristiques du bâtiment, estimer les matériaux de construction et calculer l'empreinte carbone en quelques secondes.
 
 ---
 
@@ -21,18 +21,19 @@ Les organisations qui veulent mesurer l'empreinte carbone de leurs sites font fa
 
 ### Étape 1 — L'utilisateur saisit une adresse
 
-CarbonTrack déclenche automatiquement une cascade d'appels à **6 APIs ouvertes** :
+CarbonTrack déclenche automatiquement une cascade d'appels à **7 APIs ouvertes** :
 
 | Ordre | Source | Données récupérées |
 |-------|--------|--------------------|
 | 1 | **API Adresse (data.gouv.fr)** | Géocodage : coordonnées GPS exactes |
-| 2 | **BDNB** (Base Nationale des Bâtiments) | Surface estimée, année de construction, hauteur, nombre d'étages, classe DPE prédite |
-| 3 | **API DPE ADEME** | Consommation énergétique officielle (kWh/m²/an), classe GES, type de chauffage |
+| 2 | **BDNB** (Base Nationale des Bâtiments) | Surface estimée, année de construction, classe DPE prédite |
+| 2bis | **IGN BD TOPO** (fallback BDNB) | Hauteur du bâtiment, nombre d'étages — base topographique nationale de l'IGN, utilisée automatiquement si BDNB ne renvoie pas ces données |
+| 3 | **API DPE ADEME** | Consommation énergétique officielle (kWh/m²/an), classe GES, type de chauffage, surface SHON |
 | 4 | **Estimation matériaux** (moteur interne) | Quantités estimées pour 8 types de matériaux |
 | 5 | **ADEME Base Carbone** | Facteurs d'émission officiels par matériau et par énergie |
 | 6 | **RTE eCO2mix** | Intensité carbone temps réel du réseau électrique français |
 
-> Résultat : **l'utilisateur n'a qu'à vérifier et ajuster** les données pré-remplies au lieu de tout saisir manuellement.
+> **Stratégie de résilience** : chaque donnée peut provenir de plusieurs sources. Si BDNB est indisponible, IGN BD TOPO prend le relais pour la hauteur et les étages. Si la surface n'est pas dans BDNB, elle est récupérée via la SHON du DPE tertiaire. L'utilisateur n'a qu'à vérifier et ajuster les données pré-remplies.
 
 ---
 
@@ -47,6 +48,21 @@ Les quantités sont calculées à partir de la **surface, du nombre d'étages, d
 - **CSTB** (Centre Scientifique et Technique du Bâtiment) — ratios massiques par m² de plancher
 - **Analyses ACV** de bâtiments tertiaires français publiées
 - Références réglementaires **RT2012 / RE2020** pour les épaisseurs d'isolation
+
+#### Paramètres pris en compte
+
+| Paramètre | Utilisé pour | Valeur par défaut si absent |
+|---|---|---|
+| **Surface** (m²) | Calcul de toutes les quantités de matériaux | Obligatoire |
+| **Nombre d'étages** | Emprise au sol = surface / étages → impacts béton, acier, etc. | 2 |
+| **Hauteur** (m) | Surface de façade = périmètre × hauteur → vitrage, isolation | étages × 3.5 |
+| **Année construction** | Ratios béton, acier, vitrage, isolation selon l'époque | 2000 |
+
+L'année de construction change **significativement** les calculs :
+
+- **Béton** : 0.35 t/m² (avant 1960) → 0.55 (1960-1990) → 0.45 (après 1990)
+- **Vitrage** : 20% de la façade (avant 1975) → 35% (1975-2000) → 50% (après 2000)
+- **Isolation** : 4 cm (avant 1975) → 10 cm (1975-2000) → 16 cm (RT2005) → 22 cm (RE2020)
 
 #### Ratios appliqués par matériau
 
@@ -167,21 +183,22 @@ Chaque calcul d'empreinte est **automatiquement sauvegardé** en base de donnée
 
 ---
 
-## Les 9 APIs intégrées
+## Les 10 APIs intégrées
 
 ### Sources de données critiques (coeur du calcul)
 
 | API | Usage | Coût |
 |-----|-------|------|
 | **ADEME Base Carbone** | Facteurs d'émission matériaux et énergie | Gratuit |
-| **API DPE ADEME** | Performance énergétique officielle des bâtiments | Gratuit |
+| **API DPE ADEME** | Performance énergétique officielle des bâtiments (2 datasets : tertiaire + existant) | Gratuit |
 | **RTE eCO2mix** | Intensité carbone temps réel du réseau électrique | Gratuit |
 
 ### Sources d'enrichissement (UX et précision)
 
 | API | Usage | Coût |
 |-----|-------|------|
-| **BDNB** (32M+ bâtiments) | Auto-complétion des caractéristiques bâtiment | Gratuit |
+| **BDNB** (32M+ bâtiments) | Auto-complétion des caractéristiques bâtiment (surface, année, DPE) | Gratuit |
+| **IGN BD TOPO** (Géoplateforme) | Fallback BDNB : hauteur et nombre d'étages depuis la base topographique nationale (WFS) | Gratuit |
 | **API Adresse / IGN** | Géocodage des adresses, affichage carte | Gratuit |
 | **API SIRENE INSEE** | Code NAF, effectifs, catégorie → benchmarking sectoriel | Gratuit |
 
@@ -192,6 +209,23 @@ Chaque calcul d'empreinte est **automatiquement sauvegardé** en base de donnée
 | **Météo-France** (via Open-Meteo) | Degrés-jours (DJU) → normalisation climatique de la consommation | Gratuit |
 | **INIES / FDES** | Fiches détaillées matériaux par produit et fabricant (32 fiches) | Gratuit (données statiques) |
 | **Leaflet + OpenStreetMap** | Carte interactive avec heatmap CO₂ | Gratuit |
+
+### Architecture de résilience multi-sources
+
+CarbonTrack ne dépend pas d'une seule API pour chaque donnée. Le système implémente une **stratégie de fallback** :
+
+| Donnée | Source principale | Fallback |
+|--------|-------------------|----------|
+| Surface | BDNB | DPE ADEME (surface SHON > surface habitable immeuble > surface utile) |
+| Hauteur | BDNB | IGN BD TOPO (hauteur réelle mesurée par lidar/photogrammétrie) |
+| Nombre d'étages | BDNB | IGN BD TOPO (champ `nombre_d_etages`) |
+| Année construction | BDNB | DPE ADEME |
+| Classe DPE | BDNB | DPE ADEME |
+| Classe GES | — | DPE ADEME |
+| Consommation | — | DPE ADEME (kWh/m²/an × surface) |
+| Type chauffage | — | DPE ADEME |
+
+> Si l'API principale est indisponible ou ne renvoie pas la donnée, le fallback prend le relais de manière **transparente pour l'utilisateur**. Les données des deux sources sont **fusionnées** pour maximiser la complétude.
 
 ---
 
@@ -254,8 +288,9 @@ Ces données permettent de contextualiser : *"Votre site émet X kgCO₂/m², po
 
 1. **De l'adresse au bilan en 10 secondes** — aucune saisie manuelle requise pour un premier résultat
 2. **Estimation matériaux unique** — aucun concurrent ne propose cette fonctionnalité à partir d'une simple adresse
-3. **9 APIs ouvertes intégrées** — toutes gratuites, toutes françaises, toutes officielles
-4. **Fiches FDES intégrées** — l'utilisateur peut affiner chaque facteur avec des données fabricant
-5. **Normalisation climatique** — les comparaisons inter-annuelles sont fiables grâce aux DJU
-6. **Dashboard actionnable** — pas juste des chiffres, mais des visualisations qui guident la décision
-7. **100% reproductible** — déployable sur n'importe quel campus Capgemini en quelques minutes
+3. **10 APIs ouvertes intégrées** — toutes gratuites, toutes françaises, toutes officielles
+4. **Architecture résiliente** — fallback multi-sources (BDNB → IGN BD TOPO, DPE tertiaire → DPE existant) pour maximiser la complétude des données
+5. **Fiches FDES intégrées** — l'utilisateur peut affiner chaque facteur avec des données fabricant
+6. **Normalisation climatique** — les comparaisons inter-annuelles sont fiables grâce aux DJU
+7. **Dashboard actionnable** — pas juste des chiffres, mais des visualisations qui guident la décision
+8. **100% reproductible** — déployable sur n'importe quel campus Capgemini en quelques minutes
