@@ -4,7 +4,7 @@
     <div class="page-header">
       <div>
         <h1>Mes Sites</h1>
-        <p class="page-subtitle">Gérez vos sites et leurs données</p>
+        <p class="page-subtitle">G&eacute;rez vos sites et leurs donn&eacute;es</p>
       </div>
       <a routerLink="/sites/nouveau" class="btn btn-primary">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -32,7 +32,7 @@
               <div class="site-card-actions">
                 <a [routerLink]="['/sites', site.id]" class="btn btn-ghost btn-sm">Voir</a>
                 <a [routerLink]="['/sites', site.id, 'modifier']" class="btn btn-ghost btn-sm">Modifier</a>
-                <button class="btn btn-ghost btn-sm btn-danger-text" (click)="deleteSite(site.id)">Supprimer</button>
+                <button class="btn btn-ghost btn-sm btn-danger-text" (click)="openDeleteModal(site)">Supprimer</button>
               </div>
             </div>
             @if (site.adresse) {
@@ -41,18 +41,18 @@
             <div class="site-card-stats">
               <div class="stat-item">
                 <span class="stat-label">Surface</span>
-                <span class="stat-value">{{ formatNumber(site.surfaceTotale) }} m²</span>
+                <span class="stat-value">{{ formatNumber(site.surfaceTotale) }} m&sup2;</span>
               </div>
               <div class="stat-item">
-                <span class="stat-label">Employés</span>
+                <span class="stat-label">Employ&eacute;s</span>
                 <span class="stat-value">{{ site.nombreEmployes }}</span>
               </div>
               <div class="stat-item">
-                <span class="stat-label">Énergie</span>
+                <span class="stat-label">&Eacute;nergie</span>
                 <span class="stat-value">{{ formatNumber(site.consommationEnergetique) }} kWh</span>
               </div>
               <div class="stat-item">
-                <span class="stat-label">Matériaux</span>
+                <span class="stat-label">Mat&eacute;riaux</span>
                 <span class="stat-value">{{ site.materiaux.length || 0 }}</span>
               </div>
             </div>
@@ -62,3 +62,37 @@
     }
   </main>
 </div>
+
+<!-- Delete Confirmation Modal -->
+@if (showDeleteModal()) {
+  <div class="modal-backdrop" (click)="cancelDelete()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M3 6h18"/>
+          <path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+          <path d="M19 6l-.867 12.142A2 2 0 0116.138 20H7.862a2 2 0 01-1.995-1.858L5 6"/>
+          <path d="M10 11v6"/>
+          <path d="M14 11v6"/>
+        </svg>
+      </div>
+      <h3 class="modal-title">Supprimer ce site ?</h3>
+      <p class="modal-message">
+        Vous &ecirc;tes sur le point de supprimer
+        <strong>{{ siteToDelete()?.nom }}</strong>.
+        Cette action est irr&eacute;versible. Toutes les donn&eacute;es associ&eacute;es
+        (mat&eacute;riaux, historique des calculs) seront d&eacute;finitivement perdues.
+      </p>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" (click)="cancelDelete()" [disabled]="deleting()">Annuler</button>
+        <button class="btn btn-danger" (click)="confirmDelete()" [disabled]="deleting()">
+          @if (deleting()) {
+            <span class="spinner-white"></span> Suppression...
+          } @else {
+            Supprimer
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}

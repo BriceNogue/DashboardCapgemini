@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { SidebarComponent } from '../../components/sidebar/sidebar';
 import { SiteService } from '../../core/services/site.service';
-import { ExternalApiService, AdresseResult, DpeResult } from '../../core/services/external-api.service';
+import { ExternalApiService, AdresseResult, DpeResult, IniesResult, EstimationMateriaux } from '../../core/services/external-api.service';
 import { TypeMateriau, MATERIAU_LABELS, MateriauRequest } from '../../core/models/site.model';
 
 @Component({
@@ -52,6 +52,16 @@ export class SiteFormComponent implements OnInit {
 
   typeMateriauOptions = Object.values(TypeMateriau);
   materiauLabels = MATERIAU_LABELS;
+
+  // INIES
+  iniesSuggestions = signal<IniesResult[]>([]);
+  iniesActiveIndex = signal<number | null>(null);
+  loadingInies = signal(false);
+
+  // Estimation matériaux
+  estimationMethode = signal('');
+  materiauxEstimes = signal(false);
+  private estimationTimer: any = null;
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
@@ -147,8 +157,14 @@ export class SiteFormComponent implements OnInit {
     const checkComplete = () => {
       if (bdnbDone && dpeDone) {
         this.autoFilledFields.set([...filled]);
-        this.loadingBuildingData.set(false);
         this.buildingDataLoaded.set(filled.length > 0);
+
+        // Estimate materials if we have enough data and no materials already
+        if (this.materiaux().length === 0 && this.surfaceTotale) {
+          this.estimerMateriaux(filled);
+        } else {
+          this.loadingBuildingData.set(false);
+        }
       }
     };
 
@@ -279,7 +295,98 @@ export class SiteFormComponent implements OnInit {
     return this.autoFilledFields().includes(field);
   }
 
+  private estimerMateriaux(filled: string[]) {
+    this.externalApi.estimerMateriaux(
+      this.surfaceTotale!,
+      this.nombreEtages ?? undefined,
+      this.hauteur ?? undefined,
+      this.anneeConstruction ?? undefined
+    ).subscribe({
+      next: (estimation) => {
+        if (estimation?.materiaux?.length > 0) {
+          const matRequests: MateriauRequest[] = estimation.materiaux.map(m => ({
+            typeMateriau: m.typeMateriau as unknown as TypeMateriau,
+            quantite: m.quantite,
+            facteurEmission: m.facteurEmission
+          }));
+          this.materiaux.set(matRequests);
+          this.estimationMethode.set(estimation.methode);
+          this.materiauxEstimes.set(true);
+          filled.push('materiaux');
+          this.autoFilledFields.set([...filled]);
+        }
+        this.loadingBuildingData.set(false);
+      },
+      error: () => {
+        this.loadingBuildingData.set(false);
+      }
+    });
+  }
+
+  // Re-estimate materials when relevant fields change (debounced 500ms)
+  onEstimationFieldChange() {
+    if (!this.materiauxEstimes() || !this.surfaceTotale) return;
+    clearTimeout(this.estimationTimer);
+    this.estimationTimer = setTimeout(() => {
+      this.externalApi.estimerMateriaux(
+        this.surfaceTotale!,
+        this.nombreEtages ?? undefined,
+        this.hauteur ?? undefined,
+        this.anneeConstruction ?? undefined
+      ).subscribe({
+        next: (estimation) => {
+          if (estimation?.materiaux?.length > 0) {
+            const matRequests: MateriauRequest[] = estimation.materiaux.map(m => ({
+              typeMateriau: m.typeMateriau as unknown as TypeMateriau,
+              quantite: m.quantite,
+              facteurEmission: m.facteurEmission
+            }));
+            this.materiaux.set(matRequests);
+            this.estimationMethode.set(estimation.methode);
+          }
+        },
+        error: () => {}
+      });
+    }, 500);
+  }
+
+  // INIES: search detailed material fiches
+  searchInies(index: number) {
+    const mat = this.materiaux()[index];
+    const label = this.materiauLabels[mat.typeMateriau] || mat.typeMateriau;
+    this.iniesActiveIndex.set(index);
+    this.loadingInies.set(true);
+    this.externalApi.searchInies(label).subscribe({
+      next: (results) => {
+        this.iniesSuggestions.set(results);
+        this.loadingInies.set(false);
+      },
+      error: () => {
+        this.iniesSuggestions.set([]);
+        this.loadingInies.set(false);
+      }
+    });
+  }
+
+  selectIniesFiche(index: number, fiche: IniesResult) {
+    this.updateMateriau(index, 'facteurEmission', fiche.facteurEmission);
+    this.iniesSuggestions.set([]);
+    this.iniesActiveIndex.set(null);
+  }
+
+  closeInies() {
+    this.iniesSuggestions.set([]);
+    this.iniesActiveIndex.set(null);
+  }
+
   onSubmit() {
+    // Validate required fields before sending
+    if (!this.nom || !this.surfaceTotale || !this.consommationEnergetique
+        || !this.nombreEmployes || !this.nombrePostes || this.nombrePlacesParking == null) {
+      this.errorMessage.set('Champs obligatoires manquants : vérifiez Nom, Surface, Consommation énergétique, Nombre d\'employés, Postes de travail et Places de parking.');
+      return;
+    }
+
     this.saving.set(true);
     const request = {
       nom: this.nom,
@@ -318,7 +425,7 @@ export class SiteFormComponent implements OnInit {
         if (err.status === 403 || err.status === 401) {
           this.errorMessage.set('Session expirée. Déconnectez-vous et reconnectez-vous.');
         } else if (err.status === 400) {
-          this.errorMessage.set('Champs obligatoires manquants : vérifiez Nom, Surface, Consommation énergétique et Nombre d\'employés.');
+          this.errorMessage.set('Champs obligatoires manquants : vérifiez Nom, Surface, Consommation énergétique, Nombre d\'employés, Postes de travail et Places de parking.');
         } else {
           this.errorMessage.set('Erreur serveur (' + err.status + ').');
         }

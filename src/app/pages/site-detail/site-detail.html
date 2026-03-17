@@ -126,6 +126,91 @@
           </div>
         </div>
 
+        <!-- SIRENE Info -->
+        @if (sireneInfo(); as sir) {
+          <div class="card mt-3">
+            <h3 class="card-title">Informations entreprise (SIRENE)</h3>
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="info-label">Entreprise</span>
+                <span class="info-value">{{ sir.nom }}</span>
+              </div>
+              @if (sir.siret) {
+                <div class="info-item">
+                  <span class="info-label">SIRET</span>
+                  <span class="info-value monospace">{{ sir.siret }}</span>
+                </div>
+              }
+              @if (sir.codeNaf) {
+                <div class="info-item">
+                  <span class="info-label">Code NAF</span>
+                  <span class="info-value">{{ sir.codeNaf }}</span>
+                </div>
+              }
+              @if (sir.libelleNaf) {
+                <div class="info-item">
+                  <span class="info-label">Activit&eacute;</span>
+                  <span class="info-value">{{ sir.libelleNaf }}</span>
+                </div>
+              }
+              @if (sir.trancheEffectifs) {
+                <div class="info-item">
+                  <span class="info-label">Effectifs</span>
+                  <span class="info-value">{{ sir.trancheEffectifs }}</span>
+                </div>
+              }
+              @if (sir.categorieEntreprise) {
+                <div class="info-item">
+                  <span class="info-label">Cat&eacute;gorie</span>
+                  <span class="info-value">{{ sir.categorieEntreprise }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Meteo / DJU -->
+        @if (meteoData(); as meteo) {
+          <div class="card mt-3">
+            <h3 class="card-title">Normalisation climatique (M&eacute;t&eacute;o)</h3>
+            <div class="kpi-grid kpi-grid-small">
+              <div class="meteo-kpi">
+                <span class="meteo-kpi-value meteo-hot">{{ meteo.djuChaud }}</span>
+                <span class="meteo-kpi-label">DJU Chauffage</span>
+              </div>
+              <div class="meteo-kpi">
+                <span class="meteo-kpi-value meteo-cold">{{ meteo.djuFroid }}</span>
+                <span class="meteo-kpi-label">DJU Climatisation</span>
+              </div>
+              <div class="meteo-kpi">
+                <span class="meteo-kpi-value">{{ meteo.temperatureMoyenne }}&deg;C</span>
+                <span class="meteo-kpi-label">Temp. moyenne</span>
+              </div>
+              @if (site()?.consommationEnergetique && meteo.djuChaud > 0) {
+                <div class="meteo-kpi">
+                  <span class="meteo-kpi-value meteo-norm">{{ (site()!.consommationEnergetique / meteo.djuChaud).toFixed(1) }}</span>
+                  <span class="meteo-kpi-label">kWh/DJU (normalis&eacute;)</span>
+                </div>
+              }
+            </div>
+            <p class="meteo-hint">Les DJU (degr&eacute;s-jours unifi&eacute;s) permettent de comparer la consommation &eacute;nerg&eacute;tique entre ann&eacute;es en neutralisant l'effet climatique.</p>
+            <canvas #meteoChart width="600" height="250"></canvas>
+          </div>
+        } @else if (loadingMeteo()) {
+          <div class="card mt-3">
+            <h3 class="card-title">Normalisation climatique</h3>
+            <div class="loading-inline">
+              <div class="spinner-sm"></div>
+              <span>Chargement des donn&eacute;es m&eacute;t&eacute;o...</span>
+            </div>
+          </div>
+        } @else if (meteoError()) {
+          <div class="card mt-3">
+            <h3 class="card-title">Normalisation climatique (M&eacute;t&eacute;o)</h3>
+            <p class="error-text">{{ meteoError() }}</p>
+          </div>
+        }
+
         @if (historiques().length > 1) {
           <div class="card mt-3">
             <h3 class="card-title">Historique des calculs</h3>

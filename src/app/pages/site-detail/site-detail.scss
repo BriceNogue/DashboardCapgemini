@@ -126,6 +126,77 @@
 .spinner-lg { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+// SIRENE
+.monospace {
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.5px;
+}
+
+// Meteo
+.kpi-grid-small {
+  grid-template-columns: repeat(4, 1fr) !important;
+  margin-bottom: 16px;
+}
+
+.meteo-kpi {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px;
+  background: var(--primary-50);
+  border-radius: var(--radius-sm);
+}
+
+.meteo-kpi-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.meteo-kpi-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.meteo-hot { color: #EF4444; }
+.meteo-cold { color: #3B82F6; }
+.meteo-norm { color: #059669; }
+
+.meteo-hint {
+  font-size: 12px;
+  color: var(--text-light);
+  margin-bottom: 16px;
+  font-style: italic;
+}
+
+.loading-inline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.spinner-sm {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.error-text {
+  color: #DC2626;
+  font-size: 13px;
+  padding: 12px;
+  background: #FEF2F2;
+  border-radius: var(--radius-sm);
+}
+
 .mt-3 {
   margin-top: 24px;
 }

@@ -7,6 +7,109 @@
 }
 .page-subtitle { color: var(--text-secondary); margin-top: 4px; font-size: 14px; }
 
+.map-controls {
+  display: flex;
+  gap: 10px;
+}
+
+.toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: #059669;
+    color: #059669;
+  }
+
+  &.active {
+    background: #059669;
+    color: white;
+    border-color: #059669;
+  }
+
+  .toggle-icon {
+    font-size: 15px;
+  }
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 10px 16px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  width: fit-content;
+}
+
+.legend-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.legend-bar {
+  width: 160px;
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(to right, #00ff00, #adff2f, #ffff00, #ff8c00, #ff0000);
+}
+
+.legend-labels {
+  display: flex;
+  justify-content: space-between;
+  width: 160px;
+  margin-left: -172px;
+  margin-top: 28px;
+  position: absolute;
+
+  span {
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+}
+
+.loading-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  margin-bottom: 12px;
+
+  p {
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border);
+  border-top: 3px solid #059669;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 .map-wrapper {
   flex: 1;
   min-height: 500px;

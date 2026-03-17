@@ -4,9 +4,34 @@
     <div class="page-header">
       <div>
         <h1>Carte des sites</h1>
-        <p class="page-subtitle">{{ sites().length }} site(s) géolocalisé(s)</p>
+        <p class="page-subtitle">{{ sites().length }} site(s) g&eacute;olocalis&eacute;(s)</p>
+      </div>
+      <div class="map-controls">
+        <button class="toggle-btn" [class.active]="showMarkers()" (click)="toggleMarkers()">
+          <span class="toggle-icon">&#128205;</span> Marqueurs
+        </button>
+        <button class="toggle-btn" [class.active]="showHeatmap()" (click)="toggleHeatmap()">
+          <span class="toggle-icon">&#127777;</span> Heatmap CO&#8322;
+        </button>
       </div>
     </div>
+
+    @if (loading()) {
+      <div class="loading-overlay">
+        <div class="spinner"></div>
+        <p>Chargement des donn&eacute;es carbone...</p>
+      </div>
+    }
+
+    <div class="legend">
+      <span class="legend-title">Intensit&eacute; CO&#8322;</span>
+      <div class="legend-bar"></div>
+      <div class="legend-labels">
+        <span>Faible</span>
+        <span>Forte</span>
+      </div>
+    </div>
+
     <div class="map-wrapper">
       <div id="map"></div>
     </div>

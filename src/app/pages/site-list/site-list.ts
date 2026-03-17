@@ -17,6 +17,11 @@ export class SiteListComponent implements OnInit {
   sites = signal<SiteResponse[]>([]);
   loading = signal(true);
 
+  // Delete modal
+  showDeleteModal = signal(false);
+  siteToDelete = signal<SiteResponse | null>(null);
+  deleting = signal(false);
+
   ngOnInit() {
     this.siteService.getMesSites().subscribe({
       next: (sites) => {
@@ -27,12 +32,32 @@ export class SiteListComponent implements OnInit {
     });
   }
 
-  deleteSite(id: number) {
-    if (confirm('Supprimer ce site ?')) {
-      this.siteService.supprimerSite(id).subscribe(() => {
-        this.sites.update(sites => sites.filter(s => s.id !== id));
-      });
-    }
+  openDeleteModal(site: SiteResponse) {
+    this.siteToDelete.set(site);
+    this.showDeleteModal.set(true);
+  }
+
+  cancelDelete() {
+    this.showDeleteModal.set(false);
+    this.siteToDelete.set(null);
+  }
+
+  confirmDelete() {
+    const site = this.siteToDelete();
+    if (!site) return;
+
+    this.deleting.set(true);
+    this.siteService.supprimerSite(site.id).subscribe({
+      next: () => {
+        this.sites.update(sites => sites.filter(s => s.id !== site.id));
+        this.showDeleteModal.set(false);
+        this.siteToDelete.set(null);
+        this.deleting.set(false);
+      },
+      error: () => {
+        this.deleting.set(false);
+      }
+    });
   }
 
   formatNumber(n: number): string {
